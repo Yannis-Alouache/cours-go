@@ -28,6 +28,8 @@ func (ui *UI) showRooms() {
 	slotsTable.SetBorder(true)
 	slotsTable.SetTitle("Disponibilités")
 
+	buttons := tview.NewFlex()
+
 	rooms := make([]domain.Room, 0)
 	slots := make([]domain.Slot, 0)
 	var selectedRoom domain.Room
@@ -48,6 +50,9 @@ func (ui *UI) showRooms() {
 			slotsTable.SetCell(index+1, 0, tview.NewTableCell(slot.Start))
 			slotsTable.SetCell(index+1, 1, tview.NewTableCell(slot.End))
 			slotsTable.SetCell(index+1, 2, tview.NewTableCell(status).SetTextColor(color))
+		}
+		if len(slots) == 0 {
+			ui.app.SetFocus(buttons)
 		}
 	}
 
@@ -72,6 +77,15 @@ func (ui *UI) showRooms() {
 			})
 		}()
 	}
+
+	slotsTable.SetDoneFunc(func(key tcell.Key) {
+		switch key {
+		case tcell.KeyTab, tcell.KeyBacktab:
+			ui.app.SetFocus(buttons)
+		case tcell.KeyEscape:
+			ui.app.SetFocus(roomList)
+		}
+	})
 
 	roomList.SetSelectedFunc(func(index int, mainText string, secondaryText string, shortcut rune) {
 		if index < 0 || index >= len(rooms) {
@@ -104,47 +118,51 @@ func (ui *UI) showRooms() {
 		}()
 	}
 
-	buttons := tview.NewFlex().
-		AddItem(tview.NewButton("Actualiser").SetSelectedFunc(loadAvailability), 0, 1, false).
-		AddItem(tview.NewButton("Réserver").SetSelectedFunc(func() {
-			row, _ := slotsTable.GetSelection()
-			if row <= 0 || row-1 >= len(slots) {
-				ui.info("Sélectionnez un créneau")
-				return
-			}
+	btnActualiser := tview.NewButton("Actualiser").SetSelectedFunc(loadAvailability)
+	btnReserver := tview.NewButton("Réserver").SetSelectedFunc(func() {
+		row, _ := slotsTable.GetSelection()
+		if row <= 0 || row-1 >= len(slots) {
+			ui.info("Sélectionnez un créneau")
+			return
+		}
 
-			slot := slots[row-1]
-			if !slot.Available {
-				ui.info("Ce créneau est déjà pris")
-				return
-			}
+		slot := slots[row-1]
+		if !slot.Available {
+			ui.info("Ce créneau est déjà pris")
+			return
+		}
 
-			startHour, err := strconv.Atoi(strings.Split(slot.Start, ":")[0])
+		startHour, err := strconv.Atoi(strings.Split(slot.Start, ":")[0])
+		if err != nil {
+			ui.reportError(err)
+			return
+		}
+
+		ui.info("Réservation en cours...")
+		go func() {
+			_, err := ui.client.CreateReservation(context.Background(), domain.CreateReservationRequest{
+				RoomID:    selectedRoom.ID,
+				Day:       strings.TrimSpace(dateField.GetText()),
+				StartHour: startHour,
+			})
 			if err != nil {
 				ui.reportError(err)
 				return
 			}
+			ui.update(func() {
+				ui.status.SetText("Réservation créée pour " + selectedRoom.Name)
+				loadAvailability()
+			})
+		}()
+	})
+	btnRetour := tview.NewButton("Retour").SetSelectedFunc(func() {
+		ui.showHome()
+	})
 
-			ui.info("Réservation en cours...")
-			go func() {
-				_, err := ui.client.CreateReservation(context.Background(), domain.CreateReservationRequest{
-					RoomID:    selectedRoom.ID,
-					Day:       strings.TrimSpace(dateField.GetText()),
-					StartHour: startHour,
-				})
-				if err != nil {
-					ui.reportError(err)
-					return
-				}
-				ui.update(func() {
-					ui.status.SetText("Réservation créée pour " + selectedRoom.Name)
-					loadAvailability()
-				})
-			}()
-		}), 0, 1, false).
-		AddItem(tview.NewButton("Retour").SetSelectedFunc(func() {
-			ui.showHome()
-		}), 0, 1, false)
+	*buttons = *tview.NewFlex().
+		AddItem(btnActualiser, 0, 1, false).
+		AddItem(btnReserver, 0, 1, false).
+		AddItem(btnRetour, 0, 1, false)
 
 	leftPanel := tview.NewFlex().
 		SetDirection(tview.FlexRow).
