@@ -55,12 +55,12 @@ func (s *Server) roomAvailability(c *gin.Context) {
 
 	rows, err := s.pool.Query(
 		c.Request.Context(),
-		`SELECT id, room_id, $1::text, to_char(start_time, 'HH24:MI:SS'), to_char(end_time, 'HH24:MI:SS')
+		`SELECT id, room_id, to_char(start_time, 'HH24:MI:SS'), to_char(end_time, 'HH24:MI:SS')
 		 FROM reservations
-		 WHERE room_id = $2 AND day = $1
+		 WHERE room_id = $1 AND day = $2::date
 		 ORDER BY start_time`,
-		day.Format("2006-01-02"),
 		roomID,
+		day.Format("2006-01-02"),
 	)
 	if err != nil {
 		writeAPIError(c, http.StatusInternalServerError, "availability_query_failed", "Impossible de charger les disponibilités")
@@ -71,10 +71,11 @@ func (s *Server) roomAvailability(c *gin.Context) {
 	reservations := make([]domain.Reservation, 0)
 	for rows.Next() {
 		var reservation domain.Reservation
-		if err := rows.Scan(&reservation.ID, &reservation.RoomID, &reservation.Day, &reservation.StartTime, &reservation.EndTime); err != nil {
+		if err := rows.Scan(&reservation.ID, &reservation.RoomID, &reservation.StartTime, &reservation.EndTime); err != nil {
 			writeAPIError(c, http.StatusInternalServerError, "availability_scan_failed", "Impossible de lire les réservations")
 			return
 		}
+		reservation.Day = day.Format("2006-01-02")
 		reservations = append(reservations, reservation)
 	}
 
