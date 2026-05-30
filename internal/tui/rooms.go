@@ -150,6 +150,12 @@ func (ui *UI) showRooms() {
 				return
 			}
 			ui.update(func() {
+				ui.state.Stats.TotalReservations++
+				if ui.state.Stats.RoomCount == nil {
+					ui.state.Stats.RoomCount = make(map[string]int)
+				}
+				ui.state.Stats.RoomCount[selectedRoom.Name]++
+				_ = ui.persistState()
 				ui.status.SetText("Réservation créée pour " + selectedRoom.Name)
 				loadAvailability()
 			})

@@ -133,3 +133,14 @@ func (ui *UI) persistState() error {
 	ui.client.SetToken(ui.state.Token)
 	return local.SaveState(ui.state)
 }
+
+func (ui *UI) recalcStats(reservations []domain.Reservation) {
+	ui.state.Stats = domain.ClientStats{
+		RoomCount: make(map[string]int),
+	}
+	for _, r := range reservations {
+		ui.state.Stats.TotalReservations++
+		ui.state.Stats.RoomCount[r.RoomName]++
+	}
+	_ = ui.persistState()
+}

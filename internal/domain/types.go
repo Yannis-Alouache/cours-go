@@ -51,7 +51,13 @@ type ClientConfig struct {
 	Theme  string `json:"theme"`
 }
 
+type ClientStats struct {
+	TotalReservations int            `json:"total_reservations"`
+	RoomCount         map[string]int `json:"room_count"`
+}
+
 type ClientState struct {
-	Token     string `json:"token"`
-	UserEmail string `json:"user_email"`
+	Token     string      `json:"token"`
+	UserEmail string      `json:"user_email"`
+	Stats     ClientStats `json:"stats"`
 }

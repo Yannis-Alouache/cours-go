@@ -52,6 +52,7 @@ func (ui *UI) showReservations() {
 				return
 			}
 			reservations = response
+			ui.recalcStats(reservations)
 			ui.update(func() {
 				populate()
 				ui.status.SetText("Réservations chargées")

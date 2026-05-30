@@ -21,7 +21,23 @@ func (ui *UI) newHomePage() tview.Primitive {
 		userLine = "Connecté : " + ui.state.UserEmail
 	}
 
-	header.SetText(fmt.Sprintf("[::b]Reservation de salles[-:-:-]\n%s\nAPI : %s\nCompte demo : alice@example.com / password", userLine, ui.config.APIURL))
+	statsLine := ""
+	if ui.state.UserEmail != "" && ui.state.Stats.TotalReservations > 0 {
+		favRoom := ""
+		favCount := 0
+		for name, count := range ui.state.Stats.RoomCount {
+			if count > favCount {
+				favRoom = name
+				favCount = count
+			}
+		}
+		statsLine = fmt.Sprintf("\nStatistiques : %d réservations", ui.state.Stats.TotalReservations)
+		if favRoom != "" {
+			statsLine += fmt.Sprintf(" — Salle préférée : %s (%d)", favRoom, favCount)
+		}
+	}
+
+	header.SetText(fmt.Sprintf("[::b]Reservation de salles[-:-:-]\n%s\nAPI : %s%s\nCompte demo : alice@example.com / password", userLine, ui.config.APIURL, statsLine))
 
 	list := tview.NewList()
 	list.ShowSecondaryText(false)
@@ -64,6 +80,6 @@ func (ui *UI) newHomePage() tview.Primitive {
 
 	return tview.NewFlex().
 		SetDirection(tview.FlexRow).
-		AddItem(header, 5, 0, false).
+		AddItem(header, 6, 0, false).
 		AddItem(list, 0, 1, true)
 }
