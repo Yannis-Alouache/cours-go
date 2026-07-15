@@ -51,7 +51,7 @@ func SaveConfig(cfg domain.ClientConfig) error {
 
 func DefaultConfig() domain.ClientConfig {
 	return domain.ClientConfig{
-		APIURL: "http://localhost:8080",
+		APIURL: "https://cours-go.onrender.com",
 		Theme:  "ocean",
 	}
 }
