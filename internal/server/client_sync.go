@@ -16,14 +16,6 @@ func (s *Server) putConfig(c *gin.Context) {
 	s.putSyncJSON(c, "config_json")
 }
 
-func (s *Server) getState(c *gin.Context) {
-	s.getSyncJSON(c, "state_json")
-}
-
-func (s *Server) putState(c *gin.Context) {
-	s.putSyncJSON(c, "state_json")
-}
-
 func (s *Server) getSyncJSON(c *gin.Context, column string) {
 	var payload []byte
 	err := s.pool.QueryRow(

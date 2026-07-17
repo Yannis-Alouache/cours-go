@@ -91,14 +91,6 @@ func (c *Client) ExportConfig(ctx context.Context, cfg domain.ClientConfig) erro
 	return doNoContent(ctx, c, http.MethodPut, "/me/config", cfg)
 }
 
-func (c *Client) ImportState(ctx context.Context) (domain.ClientState, error) {
-	return doJSON[domain.ClientState](ctx, c, http.MethodGet, "/me/state", nil)
-}
-
-func (c *Client) ExportState(ctx context.Context, state domain.ClientState) error {
-	return doNoContent(ctx, c, http.MethodPut, "/me/state", state)
-}
-
 func doJSON[T any](ctx context.Context, client *Client, method, path string, payload any) (T, error) {
 	var zero T
 

@@ -73,35 +73,6 @@ func (ui *UI) showSettings() {
 				ui.info("Configuration exportée vers le serveur")
 			}()
 		}).
-		AddButton("Importer état", func() {
-			ui.info("Import état en cours...")
-			go func() {
-				state, err := ui.client.ImportState(context.Background())
-				if err != nil {
-					ui.reportError(err)
-					return
-				}
-				ui.state = state
-				if err := ui.persistState(); err != nil {
-					ui.reportError(err)
-					return
-				}
-				ui.update(func() {
-					ui.showHome()
-					ui.status.SetText("État importé depuis le serveur")
-				})
-			}()
-		}).
-		AddButton("Exporter état", func() {
-			ui.info("Export état en cours...")
-			go func() {
-				if err := ui.client.ExportState(context.Background(), ui.state); err != nil {
-					ui.reportError(err)
-					return
-				}
-				ui.info("État exporté vers le serveur")
-			}()
-		}).
 		AddButton("Retour", func() {
 			ui.showHome()
 		})

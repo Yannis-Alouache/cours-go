@@ -39,8 +39,6 @@ func NewRouter(cfg config.Server, pool *pgxpool.Pool) http.Handler {
 	protected.DELETE("/reservations/:id", srv.deleteReservation)
 	protected.GET("/me/config", srv.getConfig)
 	protected.PUT("/me/config", srv.putConfig)
-	protected.GET("/me/state", srv.getState)
-	protected.PUT("/me/state", srv.putState)
 
 	return router
 }
